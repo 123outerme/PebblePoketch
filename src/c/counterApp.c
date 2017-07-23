@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <stdlib.h>   //for calloc
 
 #if defined(PBL_COLOR)
 #define BGColor GColorJaegerGreen
@@ -14,8 +15,12 @@ static TextLayer * counter;
 Layer * window_layer;
 GRect bound;
 
-int count = 0;
-char str[2] = {'0', '\0'};
+char * toString();
+int digits();
+int pwrOf10();
+
+int count;
+char * str;
 
 static void refresh_screen() {
   layer_mark_dirty(window_layer);
@@ -30,10 +35,11 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   
   graphics_context_set_stroke_color(ctx, FGColor);
   graphics_context_set_fill_color(ctx, FGColor);
-  GRect rect1_bounds = GRect(bound.origin.x + ((int) bound.size.w * .4), (bound.size.h / 2) - ((int) bound.size.h * .1), bound.size.w - ((int) bound.size.w * PBL_IF_RECT_ELSE(.79, .8)), bound.size.h - ((int) bound.size.h * PBL_IF_RECT_ELSE(.79, .8)));
+  
+  GRect rect1_bounds = GRect(bound.origin.x + ((int) bound.size.w * .35), (bound.size.h / 2) - ((int) bound.size.h * .15), bound.size.w - ((int) bound.size.w * PBL_IF_RECT_ELSE(.675, .685)), bound.size.h - ((int) bound.size.h * PBL_IF_RECT_ELSE(.675, .685)));
   graphics_draw_rect(ctx, rect1_bounds);
   
-  GRect rect2_bounds = GRect(bound.origin.x + ((int) bound.size.w * .35), (bound.size.h / 2) - ((int) bound.size.h * .15), bound.size.w - ((int) bound.size.w * PBL_IF_RECT_ELSE(.675, .685)), bound.size.h - ((int) bound.size.h * PBL_IF_RECT_ELSE(.675, .685)));
+  GRect rect2_bounds = GRect(bound.origin.x + ((int) bound.size.w * .3), (bound.size.h / 2) - ((int) bound.size.h * .2), bound.size.w - ((int) bound.size.w * PBL_IF_RECT_ELSE(.59, .6)), bound.size.h - ((int) bound.size.h * PBL_IF_RECT_ELSE(.59, .6)));
   graphics_draw_rect(ctx, rect2_bounds);
   
   GRect rect3_bounds = GRect(bound.origin.x + ((int) bound.size.w * PBL_IF_RECT_ELSE(.795, .825)), (bound.size.h / 2) - ((int) bound.size.h * .11), bound.size.w - ((int) bound.size.w * .1), bound.size.h - ((int) bound.size.h * .765));
@@ -55,12 +61,11 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
 }
 
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  if (count < 9)
+  if (count < 9999)
     count++;
   else
     count = 0;
-  str[0] = count + '0';
-  str[1] = '\0';
+  str = toString(count);
   //const char * string = str;
   //update text using string
   refresh_screen();
@@ -93,10 +98,48 @@ static void init(void) {
   });
   const bool animated = true;
   window_stack_push(window, animated);
+  
+  count = 0;
+  str = toString(count, str);
 }
 
 static void deinit(void) {
   window_destroy(window);
+}
+
+char * toString(int value, char * result)
+{
+	int digit = digits(value);
+	printf("digit = %d\n", digit);
+	result = calloc(digit + 1, sizeof(char));
+	result[digit] = '\0';
+	int usedVal = 0;
+	for (int i = digit; i > 0; i--)
+	{
+		int x = (value - usedVal) / pwrOf10(i - 1);
+		result[digit - i] = (char) x + '0';
+		printf("result[%d] = (%d) / %d = %d = character %c\n", digit - i, value - usedVal, pwrOf10(i - 1), x, result[digit - i] - '0');
+		usedVal = usedVal + (result[digit - i] - '0') * pwrOf10(i - 1);
+		printf("usedVal = itself + %d * %d =  %d\n", (int) result[digit - i] - '0', pwrOf10(i - 1), usedVal);
+	}
+	printf("%s\n",result);
+	return result;
+}
+int digits(int n) {
+    if (n < 0) return digits((n == 0) ? 9999 : -n);
+    if (n < 10) return 1;
+    return 1 + digits(n / 10);
+}
+int pwrOf10(int power)
+{
+	int val = 1;
+	int i = power;
+	while (i > 0)
+	{
+		val *= 10;
+		i--;
+	}
+	return val;
 }
 
 int main(void) {
