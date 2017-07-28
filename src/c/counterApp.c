@@ -110,7 +110,6 @@ static void deinit(void) {
 char * toString(int value, char * result)
 {
 	int digit = digits(value);
-	printf("digit = %d\n", digit);
 	result = calloc(digit + 1, sizeof(char));
 	result[digit] = '\0';
 	int usedVal = 0;
@@ -118,11 +117,8 @@ char * toString(int value, char * result)
 	{
 		int x = (value - usedVal) / pwrOf10(i - 1);
 		result[digit - i] = (char) x + '0';
-		printf("result[%d] = (%d) / %d = %d = character %c\n", digit - i, value - usedVal, pwrOf10(i - 1), x, result[digit - i] - '0');
 		usedVal = usedVal + (result[digit - i] - '0') * pwrOf10(i - 1);
-		printf("usedVal = itself + %d * %d =  %d\n", (int) result[digit - i] - '0', pwrOf10(i - 1), usedVal);
 	}
-	printf("%s\n",result);
 	return result;
 }
 int digits(int n) {
